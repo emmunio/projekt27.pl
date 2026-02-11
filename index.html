@@ -8,8 +8,47 @@
     <script src="https://cdn.jsdelivr.net/npm/replaywebpage@2.1.0/ui.js"></script>
 
     <style>
-        body { margin: 0; height: 100vh; display: flex; flex-direction: column; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { margin: 0; height: 100vh; display: flex; flex-direction: column; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #121212; color: #eee; }
         
+        /* --- STYL EKRANU POWITALNEGO --- */
+        #welcome-screen {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: #121212;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 200; /* Musi być nad wszystkim */
+            transition: opacity 0.5s ease;
+        }
+
+        #welcome-screen h1 { margin-bottom: 30px; font-weight: 300; letter-spacing: 1px; }
+        
+        .welcome-buttons { display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; }
+        
+        .big-btn {
+            padding: 15px 30px;
+            font-size: 18px;
+            background: #007bff;
+            border: none;
+            color: white;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: transform 0.2s, background 0.2s;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+        .big-btn:hover { background: #0056b3; transform: scale(1.05); }
+
+        /* --- GŁÓWNY INTERFEJS (Ukryty na początku) --- */
+        #main-interface {
+            display: none; /* Domyślnie ukryty */
+            flex-direction: column;
+            height: 100%;
+            width: 100%;
+            animation: fadeIn 1s forwards;
+        }
+
         /* Pasek nawigacji na górze */
         .controls { 
             background: #1a1a1a; 
@@ -21,7 +60,8 @@
             z-index: 100;
         }
 
-        button {
+        /* Przyciski nawigacyjne (małe) */
+        .nav-btn {
             padding: 8px 20px;
             cursor: pointer;
             background: #333;
@@ -32,40 +72,83 @@
             font-size: 14px;
         }
 
-        button:hover { background: #444; color: white; }
-        button.active { background: #007bff; color: white; border-color: #0056b3; box-shadow: 0 0 8px rgba(0,123,255,0.5); }
+        .nav-btn:hover { background: #444; color: white; }
+        .nav-btn.active { background: #007bff; color: white; border-color: #0056b3; box-shadow: 0 0 8px rgba(0,123,255,0.5); }
 
         /* Odtwarzacz wypełniający resztę ekranu */
-        replay-web-page { flex-grow: 1; display: block; width: 100%; }
+        replay-web-page { flex-grow: 1; display: block; width: 100%; border: none; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
     </style>
 </head>
 <body>
 
-    <div class="controls">
-        <button class="active" onclick="changeSource(this, 'https://media.githubusercontent.com/media/emmunio/projekt27.pl/refs/heads/main/projekt27_.02.-%200-%C5%9Br_1857.wacz')">
-            Archiwum: 18:57
-        </button>
-        <button onclick="changeSource(this, 'https://media.githubusercontent.com/media/emmunio/projekt27.pl/refs/heads/main/projekt27_.02.-%201-%C5%9Br_2208.wacz')">
-            Archiwum: 22:08
-        </button>
+    <div id="welcome-screen">
+        <h1>Wybierz wersję archiwum do załadowania:</h1>
+        <div class="welcome-buttons">
+            <button class="big-btn" onclick="initializePlayer('https://media.githubusercontent.com/media/emmunio/projekt27.pl/refs/heads/main/projekt27_.02.-%200-%C5%9Br_1857.wacz', 'btn-1857')">
+                Wersja z 18:57
+            </button>
+            <button class="big-btn" onclick="initializePlayer('https://media.githubusercontent.com/media/emmunio/projekt27.pl/refs/heads/main/projekt27_.02.-%201-%C5%9Br_2208.wacz', 'btn-2208')">
+                Wersja z 22:08
+            </button>
+        </div>
     </div>
 
-    <replay-web-page 
-        id="player"
-        source="https://media.githubusercontent.com/media/emmunio/projekt27.pl/refs/heads/main/projekt27_.02.-%200-%C5%9Br_1857.wacz" 
-        replay-self-hosted="https://cdn.jsdelivr.net/npm/replaywebpage@2.1.0/"
-        deep-link="true">
-    </replay-web-page>
+    <div id="main-interface">
+        <div class="controls">
+            <button id="btn-1857" class="nav-btn" onclick="changeSource(this, 'https://media.githubusercontent.com/media/emmunio/projekt27.pl/refs/heads/main/projekt27_.02.-%200-%C5%9Br_1857.wacz')">
+                Archiwum: 18:57
+            </button>
+            <button id="btn-2208" class="nav-btn" onclick="changeSource(this, 'https://media.githubusercontent.com/media/emmunio/projekt27.pl/refs/heads/main/projekt27_.02.-%201-%C5%9Br_2208.wacz')">
+                Archiwum: 22:08
+            </button>
+        </div>
+
+        <replay-web-page 
+            id="player"
+            source="" 
+            replay-self-hosted="https://cdn.jsdelivr.net/npm/replaywebpage@2.1.0/"
+            deep-link="true">
+        </replay-web-page>
+    </div>
 
     <script>
+        // Funkcja uruchamiana z ekranu powitalnego
+        function initializePlayer(url, activeBtnId) {
+            const welcomeScreen = document.getElementById('welcome-screen');
+            const mainInterface = document.getElementById('main-interface');
+            const player = document.getElementById('player');
+            
+            // 1. Ukryj ekran powitalny
+            welcomeScreen.style.opacity = '0';
+            setTimeout(() => {
+                welcomeScreen.style.display = 'none';
+            }, 500);
+
+            // 2. Pokaż główny interfejs (wymagane display: flex dla poprawnego układu)
+            mainInterface.style.display = 'flex';
+
+            // 3. Załaduj wybrane źródło do odtwarzacza
+            player.setAttribute('source', url);
+
+            // 4. Ustaw odpowiedni przycisk w menu na górze jako aktywny
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(activeBtnId).classList.add('active');
+        }
+
+        // Funkcja do zmiany źródła z paska nawigacji (gdy już jesteśmy w środku)
         function changeSource(btn, url) {
             const player = document.getElementById('player');
             
-            // Zmiana źródła w odtwarzaczu - to przeładowuje kontener
+            // Zmiana źródła
             player.setAttribute('source', url);
 
             // Wizualna aktualizacja przycisków
-            document.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
         }
     </script>
