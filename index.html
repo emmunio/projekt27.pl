@@ -10,7 +10,7 @@
     <style>
         body { margin: 0; height: 100vh; display: flex; flex-direction: column; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #121212; color: #eee; }
         
-        /* --- STYL EKRANU POWITALNEGO --- */
+        /* --- EKRAN POWITALNY --- */
         #welcome-screen {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -19,11 +19,11 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            z-index: 200; /* Musi być nad wszystkim */
+            z-index: 200;
             transition: opacity 0.5s ease;
         }
 
-        #welcome-screen h1 { margin-bottom: 30px; font-weight: 300; letter-spacing: 1px; }
+        #welcome-screen h1 { margin-bottom: 30px; font-weight: 300; letter-spacing: 1px; text-align: center; }
         
         .welcome-buttons { display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; }
         
@@ -40,16 +40,15 @@
         }
         .big-btn:hover { background: #0056b3; transform: scale(1.05); }
 
-        /* --- GŁÓWNY INTERFEJS (Ukryty na początku) --- */
+        /* --- GŁÓWNY INTERFEJS --- */
         #main-interface {
-            display: none; /* Domyślnie ukryty */
+            display: none; 
             flex-direction: column;
             height: 100%;
             width: 100%;
             animation: fadeIn 1s forwards;
         }
 
-        /* Pasek nawigacji na górze */
         .controls { 
             background: #1a1a1a; 
             padding: 12px; 
@@ -60,7 +59,6 @@
             z-index: 100;
         }
 
-        /* Przyciski nawigacyjne (małe) */
         .nav-btn {
             padding: 8px 20px;
             cursor: pointer;
@@ -75,7 +73,7 @@
         .nav-btn:hover { background: #444; color: white; }
         .nav-btn.active { background: #007bff; color: white; border-color: #0056b3; box-shadow: 0 0 8px rgba(0,123,255,0.5); }
 
-        /* Odtwarzacz wypełniający resztę ekranu */
+        /* Stylizacja samego odtwarzacza */
         replay-web-page { flex-grow: 1; display: block; width: 100%; border: none; }
 
         @keyframes fadeIn {
@@ -87,7 +85,7 @@
 <body>
 
     <div id="welcome-screen">
-        <h1>Wybierz wersję archiwum do załadowania:</h1>
+        <h1>Wybierz wersję archiwum:</h1>
         <div class="welcome-buttons">
             <button class="big-btn" onclick="initializePlayer('https://media.githubusercontent.com/media/emmunio/projekt27.pl/refs/heads/main/projekt27_.02.-%200-%C5%9Br_1857.wacz', 'btn-1857')">
                 Wersja z 18:57
@@ -110,44 +108,45 @@
 
         <replay-web-page 
             id="player"
-            source="" 
+            source=""
+            url=""
             replay-self-hosted="https://cdn.jsdelivr.net/npm/replaywebpage@2.1.0/"
             deep-link="true">
         </replay-web-page>
     </div>
 
     <script>
-        // Funkcja uruchamiana z ekranu powitalnego
-        function initializePlayer(url, activeBtnId) {
+        // Adres strony wewnątrz archiwum, który chcemy otworzyć
+        const targetUrl = 'https://projekt27.pl/';
+
+        function initializePlayer(waczUrl, activeBtnId) {
             const welcomeScreen = document.getElementById('welcome-screen');
             const mainInterface = document.getElementById('main-interface');
             const player = document.getElementById('player');
             
-            // 1. Ukryj ekran powitalny
+            // Ukrywanie powitania
             welcomeScreen.style.opacity = '0';
-            setTimeout(() => {
-                welcomeScreen.style.display = 'none';
-            }, 500);
+            setTimeout(() => { welcomeScreen.style.display = 'none'; }, 500);
 
-            // 2. Pokaż główny interfejs (wymagane display: flex dla poprawnego układu)
+            // Pokazanie interfejsu
             mainInterface.style.display = 'flex';
 
-            // 3. Załaduj wybrane źródło do odtwarzacza
-            player.setAttribute('source', url);
+            // KLUCZOWA ZMIANA: Ustawiamy źródło ORAZ konkretny adres URL wewnątrz archiwum
+            player.setAttribute('source', waczUrl);
+            player.setAttribute('url', targetUrl); 
 
-            // 4. Ustaw odpowiedni przycisk w menu na górze jako aktywny
+            // Aktywacja przycisku
             document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
             document.getElementById(activeBtnId).classList.add('active');
         }
 
-        // Funkcja do zmiany źródła z paska nawigacji (gdy już jesteśmy w środku)
-        function changeSource(btn, url) {
+        function changeSource(btn, waczUrl) {
             const player = document.getElementById('player');
             
-            // Zmiana źródła
-            player.setAttribute('source', url);
+            // Tutaj również ustawiamy oba parametry przy zmianie
+            player.setAttribute('source', waczUrl);
+            player.setAttribute('url', targetUrl);
 
-            // Wizualna aktualizacja przycisków
             document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
         }
